@@ -1,6 +1,7 @@
 #![allow(clippy::redundant_closure)]
 
 use itertools::{Itertools, Position};
+use dirs::home_dir;
 use std::env;
 use std::path::Path;
 
@@ -12,10 +13,25 @@ fn main() -> Result<()> {
     let mut ancestors = pwd.ancestors().collect::<Vec<_>>();
     ancestors.reverse();
 
+    let home_pos = ancestors
+        .iter()
+        .position(|&i| i==home_dir().unwrap().as_path());
+
+    if let Some(t) = home_pos {
+        ancestors.drain(0..t);
+        print!("~");
+    }
+
+    // println!("{:?}", ancestors);
     for pos in ancestors.iter().with_position() {
+        // println!("{:?}", pos);
         match pos {
-            Position::First(_) => print!("/"),
-            Position::Only(_) => print!("/"),
+            Position::First(_)  => print!("/"),
+            Position::Only(_) => {
+                if !home_pos.is_some() {
+                    print!("/");
+                }
+            }
             _ => {}
         }
 
@@ -24,8 +40,19 @@ fn main() -> Result<()> {
 
             if inner.parent().is_some() {
                 match pos {
-                    Position::Last(_) | Position::Only(_) => {
+                    Position::Last(_) => {
                         print!("{}", path_file_name_to_string(inner).unwrap());
+                    }
+                    Position::Only(_) => {
+                        if !home_pos.is_some() {
+                            print!("{}", path_file_name_to_string(inner).unwrap());
+                        }
+                    }
+                    Position::First(_) => {
+                        if !home_pos.is_some() {
+                            let name = shortest_unique_path_prefix(inner);
+                            print!("{}", name);
+                        }
                     }
                     _ => {
                         let name = shortest_unique_path_prefix(inner);
@@ -37,9 +64,7 @@ fn main() -> Result<()> {
 
         match pos {
             Position::Middle(_) => print!("/"),
-            Position::Last(_) => {}
-            Position::First(_) => {}
-            Position::Only(_) => {}
+            _ => {}
         }
     }
 
