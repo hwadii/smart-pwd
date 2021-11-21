@@ -2,6 +2,7 @@
 
 use itertools::{Itertools, Position};
 use dirs::home_dir;
+use std::borrow::Cow;
 use std::env;
 use std::path::Path;
 
@@ -98,19 +99,19 @@ fn path_file_name_to_string(path: &Path) -> Option<String> {
     Some(path.file_name()?.to_str()?.to_string())
 }
 
-fn shortest_unique_prefix<'a, S: AsRef<str>>(name: &'a str, others: &[S]) -> &'a str {
+fn shortest_unique_prefix<'a, S: AsRef<str>>(name: &'a str, others: &[S]) -> Cow<'a, str> {
     for n in 1..name.len() {
-        let sub = &name[0..n];
+        let sub = name.chars().take(n).collect::<String>();
         if others
             .iter()
-            .find(|other| other.as_ref().starts_with(sub))
+            .find(|other| other.as_ref().starts_with(&sub))
             .is_none()
         {
-            return sub;
+            return Cow::Owned(sub);
         }
     }
 
-    name
+    Cow::Borrowed(name)
 }
 
 #[cfg(test)]
@@ -132,5 +133,13 @@ mod test {
         let dirs = Vec::<&str>::new();
 
         assert_eq!("m", shortest_unique_prefix(&name, &dirs));
+    }
+
+    #[test]
+    fn test_accent_in_dir() {
+        let name = "téléchargments";
+        let dirs = vec!["téla", "téle"];
+
+        assert_eq!("télé", shortest_unique_prefix(&name, &dirs));
     }
 }
