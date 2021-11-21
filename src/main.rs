@@ -2,6 +2,7 @@
 
 use itertools::{Itertools, Position};
 use dirs::home_dir;
+use std::borrow::Cow;
 use std::env;
 use std::path::Path;
 
@@ -98,19 +99,19 @@ fn path_file_name_to_string(path: &Path) -> Option<String> {
     Some(path.file_name()?.to_str()?.to_string())
 }
 
-fn shortest_unique_prefix<'a, S: AsRef<str>>(name: &'a str, others: &[S]) -> String {
+fn shortest_unique_prefix<'a, S: AsRef<str>>(name: &'a str, others: &[S]) -> Cow<'a, str> {
     for n in 0..name.len() {
-        let sub = &name.chars().take(n).collect::<String>();
+        let sub = name.chars().take(n).collect::<String>();
         if others
             .iter()
-            .find(|other| other.as_ref().starts_with(sub))
+            .find(|other| other.as_ref().starts_with(&sub))
             .is_none()
         {
-            return sub.to_string();
+            return Cow::Owned(sub);
         }
     }
 
-    name.to_string()
+    Cow::Borrowed(name)
 }
 
 #[cfg(test)]
