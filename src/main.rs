@@ -98,19 +98,19 @@ fn path_file_name_to_string(path: &Path) -> Option<String> {
     Some(path.file_name()?.to_str()?.to_string())
 }
 
-fn shortest_unique_prefix<'a, S: AsRef<str>>(name: &'a str, others: &[S]) -> &'a str {
+fn shortest_unique_prefix<'a, S: AsRef<str>>(name: &'a str, others: &[S]) -> String {
     for n in 0..name.len() {
-        let sub = &name[0..n];
+        let sub = &name.chars().take(n).collect::<String>();
         if others
             .iter()
             .find(|other| other.as_ref().starts_with(sub))
             .is_none()
         {
-            return sub;
+            return sub.to_string();
         }
     }
 
-    name
+    name.to_string()
 }
 
 #[cfg(test)]
@@ -124,5 +124,13 @@ mod test {
         let dirs = vec!["archive", "bin", "major", "reference"];
 
         assert_eq!("mi", shortest_unique_prefix(&name, &dirs));
+    }
+
+    #[test]
+    fn test_accent_in_dir() {
+        let name = "téléchargments";
+        let dirs = vec!["téla", "téle"];
+
+        assert_eq!("télé", shortest_unique_prefix(&name, &dirs));
     }
 }
