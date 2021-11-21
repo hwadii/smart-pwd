@@ -99,7 +99,7 @@ fn path_file_name_to_string(path: &Path) -> Option<String> {
 }
 
 fn shortest_unique_prefix<'a, S: AsRef<str>>(name: &'a str, others: &[S]) -> &'a str {
-    for n in 0..name.len() {
+    for n in 1..name.len() {
         let sub = &name[0..n];
         if others
             .iter()
@@ -124,5 +124,13 @@ mod test {
         let dirs = vec!["archive", "bin", "major", "reference"];
 
         assert_eq!("mi", shortest_unique_prefix(&name, &dirs));
+    }
+
+    #[test]
+    fn test_one_dir_in_path() {
+        let name = "minor";
+        let dirs = Vec::<&str>::new();
+
+        assert_eq!("m", shortest_unique_prefix(&name, &dirs));
     }
 }
